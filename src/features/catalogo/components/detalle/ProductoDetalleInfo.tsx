@@ -1,5 +1,4 @@
 // src/features/catalogo/components/detalle/ProductoDetalleInfo.tsx
-// src/features/catalogo/components/detalle/ProductoDetalleInfo.tsx
 
 import {
   BadgePercent,
@@ -17,6 +16,8 @@ import useFavoritos from "@/features/favoritos/hooks/useFavoritos";
 import type {
   ProductoDetalle,
 } from "../../types/catalogo.types";
+
+import ProductoCompartirButton from "./ProductoCompartirButton";
 
 type ProductoDetalleInfoProps = {
   producto: ProductoDetalle;
@@ -166,58 +167,64 @@ export default function ProductoDetalleInfo({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleToggleFavorite}
-          aria-label={
-            productIsFavorite
-              ? `Eliminar ${producto.nombre} de favoritos`
-              : `Agregar ${producto.nombre} a favoritos`
-          }
-          aria-pressed={productIsFavorite}
-          title={
-            productIsFavorite
-              ? "Eliminar de favoritos"
-              : "Agregar a favoritos"
-          }
-          className={[
-            "flex size-11 shrink-0",
-            "items-center justify-center",
-            "rounded-full border shadow-sm",
-            "transition duration-200",
-            "active:scale-90",
-            "focus-visible:outline-2",
-            "focus-visible:outline-offset-2",
-            "focus-visible:outline-brand-500",
-            productIsFavorite
-              ? [
-                  "border-brand-600",
-                  "bg-brand-600 text-white",
-                  "hover:bg-brand-700",
-                ].join(" ")
-              : [
-                  "border-brand-100",
-                  "bg-white text-brand-600",
-                  "hover:border-brand-300",
-                  "hover:bg-brand-50",
-                  "dark:border-brand-900/50",
-                  "dark:bg-warm-800",
-                  "dark:text-brand-200",
-                  "dark:hover:bg-brand-950/30",
-                ].join(" "),
-          ].join(" ")}
-        >
-          <Heart
-            aria-hidden="true"
-            className={[
-              "size-5",
-              "transition-transform",
-              productIsFavorite
-                ? "scale-105 fill-current"
-                : "",
-            ].join(" ")}
+        <div className="flex shrink-0 items-center gap-2">
+          <ProductoCompartirButton
+            producto={producto}
           />
-        </button>
+
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            aria-label={
+              productIsFavorite
+                ? `Eliminar ${producto.nombre} de favoritos`
+                : `Agregar ${producto.nombre} a favoritos`
+            }
+            aria-pressed={productIsFavorite}
+            title={
+              productIsFavorite
+                ? "Eliminar de favoritos"
+                : "Agregar a favoritos"
+            }
+            className={[
+              "flex size-11 shrink-0",
+              "items-center justify-center",
+              "rounded-full border shadow-sm",
+              "transition duration-200",
+              "active:scale-90",
+              "focus-visible:outline-2",
+              "focus-visible:outline-offset-2",
+              "focus-visible:outline-brand-500",
+              productIsFavorite
+                ? [
+                    "border-brand-600",
+                    "bg-brand-600 text-white",
+                    "hover:bg-brand-700",
+                  ].join(" ")
+                : [
+                    "border-brand-100",
+                    "bg-white text-brand-600",
+                    "hover:border-brand-300",
+                    "hover:bg-brand-50",
+                    "dark:border-brand-900/50",
+                    "dark:bg-warm-800",
+                    "dark:text-brand-200",
+                    "dark:hover:bg-brand-950/30",
+                  ].join(" "),
+            ].join(" ")}
+          >
+            <Heart
+              aria-hidden="true"
+              className={[
+                "size-5",
+                "transition-transform",
+                productIsFavorite
+                  ? "scale-105 fill-current"
+                  : "",
+              ].join(" ")}
+            />
+          </button>
+        </div>
       </div>
 
       {producto.descripcion_corta && (

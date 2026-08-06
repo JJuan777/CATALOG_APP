@@ -5,6 +5,7 @@ import type {
   CatalogoOpcionesResponse,
   CatalogoQueryParams,
   CatalogoResponse,
+  ProductoCatalogo,
   ProductoDetalle,
 } from "../types/catalogo.types";
 
@@ -208,6 +209,38 @@ export async function obtenerProductoDetalle(
   }
 
   const data: ProductoDetalle =
+    await response.json();
+
+  return data;
+}
+export async function obtenerProductosRelacionados(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<ProductoCatalogo[]> {
+  const response = await fetch(
+    `${API_URL}/catalogo/productos/${encodeURIComponent(slug)}/relacionados/`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+      signal,
+    },
+  );
+
+  if (response.status === 404) {
+    throw new Error(
+      "El producto no existe o ya no está disponible.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      "No fue posible obtener los productos relacionados.",
+    );
+  }
+
+  const data: ProductoCatalogo[] =
     await response.json();
 
   return data;

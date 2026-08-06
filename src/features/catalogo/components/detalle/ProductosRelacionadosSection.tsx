@@ -1,0 +1,171 @@
+// src/features/catalogo/components/detalle/ProductosRelacionadosSection.tsx
+import {
+  ArrowRight,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
+
+import {
+  Link,
+} from "react-router-dom";
+
+import CatalogoCard from "../CatalogoCard";
+
+import useProductosRelacionados from "../../hooks/useProductosRelacionados";
+
+type ProductosRelacionadosSectionProps = {
+  slug: string;
+};
+
+function ProductosRelacionadosSkeleton() {
+  const imageRatios = [
+    "aspect-[4/5]",
+    "aspect-[3/4]",
+    "aspect-square",
+    "aspect-[5/6]",
+  ];
+
+  return (
+    <div className="flex snap-x gap-3 overflow-hidden lg:grid lg:grid-cols-4 lg:gap-5">
+      {imageRatios.map(
+        (ratio, index) => (
+          <div
+            key={`${ratio}-${index}`}
+            className="w-[68vw] max-w-64 shrink-0 snap-start overflow-hidden rounded-[1.25rem] border border-brand-100 bg-white sm:w-56 lg:w-auto lg:max-w-none dark:border-brand-900/40 dark:bg-warm-800"
+          >
+            <div
+              className={`${ratio} animate-pulse bg-brand-100/70 dark:bg-brand-950/30`}
+            />
+
+            <div className="space-y-3 p-3">
+              <div className="h-3 w-16 animate-pulse rounded-full bg-brand-100 dark:bg-brand-950/40" />
+
+              <div className="h-5 w-3/4 animate-pulse rounded-full bg-cream-300 dark:bg-warm-700" />
+
+              <div className="h-3 w-full animate-pulse rounded-full bg-cream-200 dark:bg-warm-700" />
+            </div>
+          </div>
+        ),
+      )}
+    </div>
+  );
+}
+
+export default function ProductosRelacionadosSection({
+  slug,
+}: ProductosRelacionadosSectionProps) {
+  const {
+    productos,
+    loading,
+    error,
+    reload,
+  } = useProductosRelacionados(
+    slug,
+  );
+
+  if (
+    !loading
+    && !error
+    && productos.length === 0
+  ) {
+    return null;
+  }
+
+  return (
+    <section
+      aria-labelledby="productos-relacionados-titulo"
+      className="mt-12 border-t border-brand-100 pt-8 dark:border-brand-900/40"
+    >
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-[0.15em] text-brand-600 dark:text-brand-300">
+            <Sparkles
+              aria-hidden="true"
+              className="size-4"
+            />
+
+            Descubre más
+          </span>
+
+          <h2
+            id="productos-relacionados-titulo"
+            className="mt-1 font-display text-2xl font-bold text-warm-900 sm:text-3xl dark:text-cream-50"
+          >
+            También podrían encantarte
+          </h2>
+        </div>
+
+        <Link
+          to="/"
+          className="hidden items-center gap-1 text-sm font-bold text-brand-700 transition hover:text-brand-800 sm:inline-flex dark:text-brand-200"
+        >
+          Ver catálogo
+
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4"
+          />
+        </Link>
+      </div>
+
+      {loading && (
+        <ProductosRelacionadosSkeleton />
+      )}
+
+      {!loading && error && (
+        <div className="flex min-h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-brand-200 bg-brand-50/50 px-5 text-center dark:border-brand-900/50 dark:bg-brand-950/20">
+          <p className="text-sm font-medium text-warm-700 dark:text-cream-200">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={reload}
+            className="mt-3 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-brand-700 transition hover:bg-brand-100 dark:text-brand-200 dark:hover:bg-brand-950/40"
+          >
+            <RefreshCw
+              aria-hidden="true"
+              className="size-4"
+            />
+
+            Intentar nuevamente
+          </button>
+        </div>
+      )}
+
+      {!loading
+        && !error
+        && productos.length > 0 && (
+          <div
+            aria-label="Productos relacionados"
+            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible lg:px-0"
+          >
+            {productos.map(
+              (producto) => (
+                <div
+                  key={producto.id}
+                  className="w-[68vw] max-w-64 shrink-0 snap-start sm:w-56 lg:w-auto lg:max-w-none"
+                >
+                  <CatalogoCard
+                    producto={producto}
+                  />
+                </div>
+              ),
+            )}
+          </div>
+        )}
+
+      <Link
+        to="/"
+        className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-brand-200 bg-white text-sm font-bold text-brand-700 sm:hidden dark:border-brand-900/60 dark:bg-warm-800 dark:text-brand-200"
+      >
+        Ver todo el catálogo
+
+        <ArrowRight
+          aria-hidden="true"
+          className="size-4"
+        />
+      </Link>
+    </section>
+  );
+}

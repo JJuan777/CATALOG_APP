@@ -1,10 +1,15 @@
 // src/components/layout/Topbar.tsx
+
 import {
   Heart,
   Home,
   Moon,
   Sun,
 } from "lucide-react";
+
+import {
+  FaInstagram,
+} from "react-icons/fa6";
 
 import {
   NavLink,
@@ -26,7 +31,7 @@ export default function Topbar() {
         <NavLink
           to="/"
           aria-label="Ir al catálogo"
-          className="group flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4"
+          className="group flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-500"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-soft transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105">
             <Heart
@@ -57,15 +62,20 @@ export default function Topbar() {
             className={({ isActive }) => [
               "flex h-10 items-center gap-2 rounded-xl px-3",
               "text-sm font-bold transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-offset-2",
+              "focus-visible:outline-2",
+              "focus-visible:outline-offset-2",
+              "focus-visible:outline-brand-500",
               isActive
                 ? [
                     "bg-brand-100 text-brand-700",
-                    "dark:bg-brand-900/40 dark:text-brand-200",
+                    "dark:bg-brand-900/40",
+                    "dark:text-brand-200",
                   ].join(" ")
                 : [
-                    "text-warm-700 hover:bg-brand-100/70",
-                    "hover:text-brand-700 dark:text-cream-200",
+                    "text-warm-700",
+                    "hover:bg-brand-100/70",
+                    "hover:text-brand-700",
+                    "dark:text-cream-200",
                     "dark:hover:bg-brand-900/30",
                     "dark:hover:text-brand-200",
                   ].join(" "),
@@ -82,6 +92,20 @@ export default function Topbar() {
             </span>
           </NavLink>
 
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visitar Instagram"
+            title="Instagram"
+            className="flex size-10 items-center justify-center rounded-xl border border-brand-200/80 bg-white/70 text-brand-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-brand-900/60 dark:bg-warm-800 dark:text-brand-200 dark:hover:bg-brand-950/50"
+          >
+            <FaInstagram
+              aria-hidden="true"
+              className="size-5"
+            />
+          </a>
+
           <button
             type="button"
             onClick={toggleTheme}
@@ -95,7 +119,7 @@ export default function Topbar() {
                 ? "Cambiar a tema claro"
                 : "Cambiar a tema oscuro"
             }
-            className="flex size-10 items-center justify-center rounded-xl border border-brand-200/80 bg-white/70 text-brand-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-brand-900/60 dark:bg-warm-800 dark:text-brand-200 dark:hover:bg-brand-950/50"
+            className="flex size-10 items-center justify-center rounded-xl border border-brand-200/80 bg-white/70 text-brand-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-brand-900/60 dark:bg-warm-800 dark:text-brand-200 dark:hover:bg-brand-950/50"
           >
             {isDark ? (
               <Sun

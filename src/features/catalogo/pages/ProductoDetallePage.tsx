@@ -1,5 +1,9 @@
 // src/features/catalogo/pages/ProductoDetallePage.tsx
 import {
+  useEffect,
+} from "react";
+
+import {
   ArrowLeft,
   RefreshCw,
   TriangleAlert,
@@ -13,6 +17,7 @@ import {
 import ProductoDetalleGallery from "../components/detalle/ProductoDetalleGallery";
 import ProductoDetalleInfo from "../components/detalle/ProductoDetalleInfo";
 import ProductoDetalleSkeleton from "../components/detalle/ProductoDetalleSkeleton";
+import ProductosRelacionadosSection from "../components/detalle/ProductosRelacionadosSection";
 
 import useProductoDetalle from "../hooks/useProductoDetalle";
 
@@ -30,10 +35,30 @@ export default function ProductoDetallePage() {
     loading,
     error,
     reload,
-  } = useProductoDetalle(slug);
+  } = useProductoDetalle(
+    slug,
+  );
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [slug]);
 
   function goBack() {
-    navigate(-1);
+    if (window.history.length > 1) {
+      navigate(-1);
+
+      return;
+    }
+
+    navigate(
+      "/",
+      {
+        replace: true,
+      },
+    );
   }
 
   return (
@@ -41,9 +66,13 @@ export default function ProductoDetallePage() {
       <button
         type="button"
         onClick={goBack}
-        className="mb-4 inline-flex h-10 items-center gap-2 rounded-xl px-2 text-sm font-bold text-warm-700 transition active:bg-brand-100 dark:text-cream-200 dark:active:bg-brand-900/30"
+        className="mb-4 inline-flex h-10 items-center gap-2 rounded-xl px-2 text-sm font-bold text-warm-700 transition hover:bg-brand-50 active:bg-brand-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-cream-200 dark:hover:bg-brand-950/20 dark:active:bg-brand-900/30"
       >
-        <ArrowLeft className="size-4" />
+        <ArrowLeft
+          aria-hidden="true"
+          className="size-4"
+        />
+
         Regresar
       </button>
 
@@ -54,7 +83,10 @@ export default function ProductoDetallePage() {
       {!loading && error && (
         <div className="flex min-h-[60dvh] flex-col items-center justify-center px-6 text-center">
           <span className="flex size-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600 dark:bg-brand-950/40 dark:text-brand-200">
-            <TriangleAlert className="size-6" />
+            <TriangleAlert
+              aria-hidden="true"
+              className="size-6"
+            />
           </span>
 
           <h1 className="mt-4 font-display text-2xl font-bold text-warm-900 dark:text-cream-50">
@@ -68,35 +100,48 @@ export default function ProductoDetallePage() {
           <button
             type="button"
             onClick={reload}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-brand-700 active:scale-95"
           >
-            <RefreshCw className="size-4" />
+            <RefreshCw
+              aria-hidden="true"
+              className="size-4"
+            />
+
             Intentar nuevamente
           </button>
         </div>
       )}
 
       {!loading && producto && (
-        <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-10">
-          <div className="lg:sticky lg:top-24">
-            <ProductoDetalleGallery
-              nombre={producto.nombre}
-              imagenes={
-                producto.imagenes.length > 0
-                  ? producto.imagenes
-                  : producto.imagen_principal
-                    ? [
-                        producto.imagen_principal,
-                      ]
-                    : []
-              }
+        <>
+          <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-10">
+            <div className="lg:sticky lg:top-24">
+              <ProductoDetalleGallery
+                key={producto.id}
+                nombre={producto.nombre}
+                imagenes={
+                  producto.imagenes.length > 0
+                    ? producto.imagenes
+                    : producto.imagen_principal
+                      ? [
+                          producto.imagen_principal,
+                        ]
+                      : []
+                }
+              />
+            </div>
+
+            <ProductoDetalleInfo
+              key={producto.id}
+              producto={producto}
             />
           </div>
 
-          <ProductoDetalleInfo
-            producto={producto}
+          <ProductosRelacionadosSection
+            key={producto.slug}
+            slug={producto.slug}
           />
-        </div>
+        </>
       )}
     </section>
   );
