@@ -1,5 +1,7 @@
 // src/features/catalogo/hooks/useProductoDetalle.ts
+
 import {
+  useCallback,
   useEffect,
   useState,
 } from "react";
@@ -12,15 +14,16 @@ import type {
   ProductoDetalle,
 } from "../types/catalogo.types";
 
+
 export default function useProductoDetalle(
   slug: string | undefined,
 ) {
   const [
     producto,
     setProducto,
-  ] = useState<ProductoDetalle | null>(
-    null,
-  );
+  ] = useState<
+    ProductoDetalle | null
+  >(null);
 
   const [
     loading,
@@ -30,17 +33,21 @@ export default function useProductoDetalle(
   const [
     error,
     setError,
-  ] = useState<string | null>(null);
+  ] = useState<
+    string | null
+  >(null);
 
   const [
     reloadKey,
     setReloadKey,
   ] = useState(0);
 
+
   useEffect(() => {
     if (!slug) {
       setProducto(null);
       setLoading(false);
+
       setError(
         "No se proporcionó un producto válido.",
       );
@@ -48,13 +55,19 @@ export default function useProductoDetalle(
       return;
     }
 
+    // A partir de aquí TypeScript sabe
+    // que productSlug siempre es string.
     const productSlug = slug;
-    const controller = new AbortController();
+
+    const controller =
+      new AbortController();
+
 
     async function loadProduct() {
       try {
         setLoading(true);
         setError(null);
+        setProducto(null);
 
         const response =
           await obtenerProductoDetalle(
@@ -62,13 +75,27 @@ export default function useProductoDetalle(
             controller.signal,
           );
 
+        if (
+          controller.signal.aborted
+        ) {
+          return;
+        }
+
         setProducto(
           response,
         );
       } catch (requestError) {
         if (
-          requestError instanceof DOMException
-          && requestError.name === "AbortError"
+          requestError
+            instanceof DOMException
+          && requestError.name
+            === "AbortError"
+        ) {
+          return;
+        }
+
+        if (
+          controller.signal.aborted
         ) {
           return;
         }
@@ -76,32 +103,41 @@ export default function useProductoDetalle(
         setProducto(null);
 
         setError(
-          requestError instanceof Error
+          requestError
+            instanceof Error
             ? requestError.message
             : "No fue posible cargar el producto.",
         );
       } finally {
-        if (!controller.signal.aborted) {
+        if (
+          !controller.signal.aborted
+        ) {
           setLoading(false);
         }
       }
     }
 
+
     void loadProduct();
+
 
     return () => {
       controller.abort();
     };
   }, [
-    reloadKey,
     slug,
+    reloadKey,
   ]);
 
-  function reload() {
-    setReloadKey((currentKey) => (
-      currentKey + 1
-    ));
-  }
+
+  const reload =
+    useCallback(() => {
+      setReloadKey(
+        (currentKey) =>
+          currentKey + 1,
+      );
+    }, []);
+
 
   return {
     producto,

@@ -1,26 +1,46 @@
 // src/features/catalogo/hooks/useCatalogoColumns.ts
+
 import {
   useEffect,
   useState,
 } from "react";
 
-function getColumnCount() {
-  const width = window.innerWidth;
 
-  if (width >= 1536) {
+const BREAKPOINTS = {
+  md: "(min-width: 768px)",
+  xl: "(min-width: 1280px)",
+  "2xl": "(min-width: 1536px)",
+} as const;
+
+
+function getColumnCount() {
+  if (
+    window.matchMedia(
+      BREAKPOINTS["2xl"],
+    ).matches
+  ) {
     return 5;
   }
 
-  if (width >= 1280) {
+  if (
+    window.matchMedia(
+      BREAKPOINTS.xl,
+    ).matches
+  ) {
     return 4;
   }
 
-  if (width >= 768) {
+  if (
+    window.matchMedia(
+      BREAKPOINTS.md,
+    ).matches
+  ) {
     return 3;
   }
 
   return 2;
 }
+
 
 export default function useCatalogoColumns() {
   const [
@@ -30,25 +50,48 @@ export default function useCatalogoColumns() {
     getColumnCount,
   );
 
+
   useEffect(() => {
-    function handleResize() {
+    const mediaQueries =
+      Object.values(
+        BREAKPOINTS,
+      ).map(
+        (query) =>
+          window.matchMedia(
+            query,
+          ),
+      );
+
+
+    function handleChange() {
       setColumnCount(
         getColumnCount(),
       );
     }
 
-    window.addEventListener(
-      "resize",
-      handleResize,
+
+    mediaQueries.forEach(
+      (mediaQuery) => {
+        mediaQuery.addEventListener(
+          "change",
+          handleChange,
+        );
+      },
     );
 
+
     return () => {
-      window.removeEventListener(
-        "resize",
-        handleResize,
+      mediaQueries.forEach(
+        (mediaQuery) => {
+          mediaQuery.removeEventListener(
+            "change",
+            handleChange,
+          );
+        },
       );
     };
   }, []);
+
 
   return columnCount;
 }

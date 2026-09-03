@@ -1,4 +1,5 @@
 // src/features/favoritos/context/FavoritosProvider.tsx
+
 import {
   useCallback,
   useEffect,
@@ -7,7 +8,7 @@ import {
 } from "react";
 
 import type {
-  ReactNode,
+  PropsWithChildren,
 } from "react";
 
 import {
@@ -27,19 +28,28 @@ import type {
 
 import FavoritosContext from "./FavoritosContext";
 
-type FavoritosProviderProps = {
-  children: ReactNode;
-};
 
 export default function FavoritosProvider({
   children,
-}: FavoritosProviderProps) {
+}: PropsWithChildren) {
   const [
     favoritosIds,
     setFavoritosIds,
   ] = useState<number[]>(
     obtenerFavoritosStorage,
   );
+
+  const favoritosSet =
+    useMemo(
+      () =>
+        new Set(
+          favoritosIds,
+        ),
+      [
+        favoritosIds,
+      ],
+    );
+
 
   useEffect(() => {
     function handleStorage(
@@ -72,103 +82,137 @@ export default function FavoritosProvider({
     };
   }, []);
 
-  const esFavorito = useCallback(
-    (
-      productoId: number,
-    ) => (
-      favoritosIds.includes(
-        productoId,
-      )
-    ),
-    [favoritosIds],
-  );
 
-  const alternarFavorito = useCallback(
-    (
-      productoId: number,
-    ) => {
-      setFavoritosIds(
-        (currentIds) => {
-          const isFavorite =
-            currentIds.includes(
-              productoId,
-            );
+  const esFavorito =
+    useCallback(
+      (
+        productoId: number,
+      ) =>
+        favoritosSet.has(
+          productoId,
+        ),
+      [
+        favoritosSet,
+      ],
+    );
 
-          const nextIds = isFavorite
-            ? currentIds.filter(
-                (currentId) => (
-                  currentId
-                  !== productoId
-                ),
-              )
-            : [
-                ...currentIds,
+
+  const alternarFavorito =
+    useCallback(
+      (
+        productoId: number,
+      ) => {
+        setFavoritosIds(
+          (currentIds) => {
+            const isFavorite =
+              currentIds.includes(
                 productoId,
-              ];
+              );
 
-          guardarFavoritosStorage(
-            nextIds,
-          );
+            const nextIds =
+              isFavorite
+                ? currentIds.filter(
+                    (currentId) =>
+                      currentId
+                      !== productoId,
+                  )
+                : [
+                    ...currentIds,
+                    productoId,
+                  ];
 
-          return nextIds;
-        },
-      );
-    },
-    [],
-  );
-
-  const eliminarFavorito = useCallback(
-    (
-      productoId: number,
-    ) => {
-      setFavoritosIds(
-        (currentIds) => {
-          const nextIds =
-            currentIds.filter(
-              (currentId) => (
-                currentId
-                !== productoId
-              ),
+            guardarFavoritosStorage(
+              nextIds,
             );
 
-          guardarFavoritosStorage(
-            nextIds,
-          );
+            return nextIds;
+          },
+        );
+      },
+      [],
+    );
 
-          return nextIds;
-        },
-      );
-    },
-    [],
-  );
 
-  const limpiarFavoritos = useCallback(
-    () => {
-      setFavoritosIds([]);
-      limpiarFavoritosStorage();
-    },
-    [],
-  );
+  const eliminarFavorito =
+    useCallback(
+      (
+        productoId: number,
+      ) => {
+        setFavoritosIds(
+          (currentIds) => {
+            if (
+              !currentIds.includes(
+                productoId,
+              )
+            ) {
+              return currentIds;
+            }
+
+            const nextIds =
+              currentIds.filter(
+                (currentId) =>
+                  currentId
+                  !== productoId,
+              );
+
+            guardarFavoritosStorage(
+              nextIds,
+            );
+
+            return nextIds;
+          },
+        );
+      },
+      [],
+    );
+
+
+  const limpiarFavoritos =
+    useCallback(
+      () => {
+        setFavoritosIds(
+          (currentIds) => {
+            if (
+              currentIds.length === 0
+            ) {
+              return currentIds;
+            }
+
+            limpiarFavoritosStorage();
+
+            return [];
+          },
+        );
+      },
+      [],
+    );
+
 
   const contextValue =
     useMemo<FavoritosContextValue>(
       () => ({
         favoritosIds,
+
         totalFavoritos:
           favoritosIds.length,
+
         esFavorito,
+
         alternarFavorito,
+
         eliminarFavorito,
+
         limpiarFavoritos,
       }),
       [
+        favoritosIds,
+        esFavorito,
         alternarFavorito,
         eliminarFavorito,
-        esFavorito,
-        favoritosIds,
         limpiarFavoritos,
       ],
     );
+
 
   return (
     <FavoritosContext.Provider

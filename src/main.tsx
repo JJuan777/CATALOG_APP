@@ -1,4 +1,5 @@
-// src\main.tsx
+// src/main.tsx
+
 import {
   StrictMode,
 } from "react";
@@ -10,11 +11,16 @@ import {
 import "@fontsource-variable/manrope";
 import "@fontsource-variable/playfair-display";
 
-import App from "@/app/App";
+import App
+  from "@/app/App";
 
 import "@/styles/index.css";
 
-const rootElement = document.getElementById("root");
+
+const rootElement =
+  document.getElementById(
+    "root",
+  );
 
 if (!rootElement) {
   throw new Error(
@@ -22,7 +28,9 @@ if (!rootElement) {
   );
 }
 
-createRoot(rootElement).render(
+createRoot(
+  rootElement,
+).render(
   <StrictMode>
     <App />
   </StrictMode>,

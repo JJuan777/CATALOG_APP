@@ -1,12 +1,16 @@
 // src/app/App.tsx
-import FavoritosProvider from "@/features/favoritos/context/FavoritosProvider";
 
-import AppRouter from "./router/AppRouter";
+import AppProviders
+  from "./providers/AppProviders";
+
+import AppRouter
+  from "./router/AppRouter";
+
 
 export default function App() {
   return (
-    <FavoritosProvider>
+    <AppProviders>
       <AppRouter />
-    </FavoritosProvider>
+    </AppProviders>
   );
 }

@@ -1,4 +1,5 @@
 // src/features/catalogo/hooks/useCatalogo.ts
+
 import {
   useEffect,
   useState,
@@ -13,6 +14,17 @@ import type {
   CatalogoQueryParams,
   ProductoCatalogo,
 } from "../types/catalogo.types";
+
+
+function isAbortError(
+  error: unknown,
+) {
+  return (
+    error instanceof DOMException
+    && error.name === "AbortError"
+  );
+}
+
 
 export default function useCatalogo(
   params: CatalogoQueryParams,
@@ -44,8 +56,10 @@ export default function useCatalogo(
     setReloadKey,
   ] = useState(0);
 
+
   useEffect(() => {
-    const controller = new AbortController();
+    const controller =
+      new AbortController();
 
     async function loadProducts() {
       try {
@@ -63,39 +77,45 @@ export default function useCatalogo(
             controller.signal,
           );
 
-        setProductos((currentProducts) => {
-          if (params.page === 1) {
-            return response.resultados;
-          }
+        setProductos(
+          (currentProducts) => {
+            if (params.page === 1) {
+              return response.resultados;
+            }
 
-          const productsMap = new Map(
-            currentProducts.map((product) => [
-              product.id,
-              product,
-            ]),
-          );
-
-          response.resultados.forEach(
-            (product) => {
-              productsMap.set(
-                product.id,
-                product,
+            const productsMap =
+              new Map(
+                currentProducts.map(
+                  (product) => [
+                    product.id,
+                    product,
+                  ],
+                ),
               );
-            },
-          );
 
-          return Array.from(
-            productsMap.values(),
-          );
-        });
+            response.resultados.forEach(
+              (product) => {
+                productsMap.set(
+                  product.id,
+                  product,
+                );
+              },
+            );
+
+            return Array.from(
+              productsMap.values(),
+            );
+          },
+        );
 
         setPaginacion(
           response.paginacion,
         );
       } catch (requestError) {
         if (
-          requestError instanceof DOMException
-          && requestError.name === "AbortError"
+          isAbortError(
+            requestError,
+          )
         ) {
           return;
         }
@@ -106,7 +126,9 @@ export default function useCatalogo(
             : "No fue posible cargar el catálogo.",
         );
       } finally {
-        if (!controller.signal.aborted) {
+        if (
+          !controller.signal.aborted
+        ) {
           setLoading(false);
         }
       }
@@ -122,11 +144,14 @@ export default function useCatalogo(
     reloadKey,
   ]);
 
+
   function reload() {
-    setReloadKey((currentKey) => (
-      currentKey + 1
-    ));
+    setReloadKey(
+      (currentKey) =>
+        currentKey + 1,
+    );
   }
+
 
   return {
     productos,

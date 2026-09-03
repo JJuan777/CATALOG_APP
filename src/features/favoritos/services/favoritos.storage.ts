@@ -1,7 +1,9 @@
 // src/features/favoritos/services/favoritos.storage.ts
+
 import {
   FAVORITOS_STORAGE_KEY,
 } from "../constants/favoritos.constants";
+
 
 function esIdValido(
   value: unknown,
@@ -13,6 +15,7 @@ function esIdValido(
   );
 }
 
+
 function normalizarFavoritos(
   value: unknown,
 ): number[] {
@@ -20,68 +23,16 @@ function normalizarFavoritos(
     return [];
   }
 
-  const idsValidos = value.filter(
-    esIdValido,
-  );
+  const idsValidos =
+    value.filter(
+      esIdValido,
+    );
 
   return Array.from(
     new Set(idsValidos),
   );
 }
 
-export function obtenerFavoritosStorage():
-  number[] {
-  try {
-    const storedValue =
-      window.localStorage.getItem(
-        FAVORITOS_STORAGE_KEY,
-      );
-
-    if (!storedValue) {
-      return [];
-    }
-
-    const parsedValue: unknown =
-      JSON.parse(storedValue);
-
-    return normalizarFavoritos(
-      parsedValue,
-    );
-  } catch {
-    return [];
-  }
-}
-
-export function guardarFavoritosStorage(
-  favoritosIds: number[],
-) {
-  try {
-    const normalizedIds =
-      normalizarFavoritos(
-        favoritosIds,
-      );
-
-    window.localStorage.setItem(
-      FAVORITOS_STORAGE_KEY,
-      JSON.stringify(
-        normalizedIds,
-      ),
-    );
-  } catch {
-    // La aplicación continúa funcionando aunque
-    // el navegador bloquee localStorage.
-  }
-}
-
-export function limpiarFavoritosStorage() {
-  try {
-    window.localStorage.removeItem(
-      FAVORITOS_STORAGE_KEY,
-    );
-  } catch {
-    // No se requiere ninguna acción adicional.
-  }
-}
 
 export function interpretarFavoritosStorage(
   value: string | null,
@@ -99,5 +50,59 @@ export function interpretarFavoritosStorage(
     );
   } catch {
     return [];
+  }
+}
+
+
+export function obtenerFavoritosStorage():
+  number[] {
+  try {
+    const storedValue =
+      window.localStorage.getItem(
+        FAVORITOS_STORAGE_KEY,
+      );
+
+    return interpretarFavoritosStorage(
+      storedValue,
+    );
+  } catch {
+    return [];
+  }
+}
+
+
+export function guardarFavoritosStorage(
+  favoritosIds: number[],
+) {
+  try {
+    const normalizedIds =
+      normalizarFavoritos(
+        favoritosIds,
+      );
+
+    window.localStorage.setItem(
+      FAVORITOS_STORAGE_KEY,
+      JSON.stringify(
+        normalizedIds,
+      ),
+    );
+  } catch {
+    /*
+     * La aplicación continúa funcionando
+     * aunque localStorage no esté disponible.
+     */
+  }
+}
+
+
+export function limpiarFavoritosStorage() {
+  try {
+    window.localStorage.removeItem(
+      FAVORITOS_STORAGE_KEY,
+    );
+  } catch {
+    /*
+     * No se requiere una acción adicional.
+     */
   }
 }

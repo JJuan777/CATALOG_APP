@@ -15,7 +15,8 @@ import {
 
 import CatalogoEmpty from "../components/CatalogoEmpty";
 import CatalogoError from "../components/CatalogoError";
-import CatalogoFiltersPanel from "../components/CatalogoFiltersPanel";
+import CatalogoFiltersPanel
+  from "../components/filters/CatalogoFiltersPanel";
 import CatalogoGrid from "../components/CatalogoGrid";
 import CatalogoSkeleton from "../components/CatalogoSkeleton";
 import CatalogoToolbar from "../components/CatalogoToolbar";

@@ -1,5 +1,12 @@
 // src/features/catalogo/api/catalogo.api.ts
-// src/features/catalogo/api/catalogo.api.ts
+
+import {
+  httpClient,
+} from "@/lib/http/httpClient";
+
+import {
+  HttpError,
+} from "@/lib/http/httpError";
 
 import type {
   CatalogoOpcionesResponse,
@@ -9,239 +16,126 @@ import type {
   ProductoDetalle,
 } from "../types/catalogo.types";
 
-const DEFAULT_API_URL =
-  "http://127.0.0.1:8000/api";
+import {
+  buildCatalogoSearchParams,
+} from "../utils/catalogo.utils";
 
-const API_URL = (
-  import.meta.env.VITE_API_URL
-  ?? DEFAULT_API_URL
-).replace(
-  /\/$/,
-  "",
-);
 
-function appendArrayParam(
-  searchParams: URLSearchParams,
-  name: string,
-  values: string[],
+function buildProductoEndpoint(
+  slug: string,
 ) {
-  if (values.length === 0) {
-    return;
-  }
-
-  searchParams.set(
-    name,
-    values.join(","),
+  return (
+    "/catalogo/productos/"
+    + `${encodeURIComponent(slug)}/`
   );
 }
 
-function buildCatalogoSearchParams(
-  params: CatalogoQueryParams,
-) {
-  const searchParams =
-    new URLSearchParams();
 
-  searchParams.set(
-    "page",
-    String(params.page),
-  );
-
-  const normalizedSearch =
-    params.search.trim();
-
-  if (normalizedSearch) {
-    searchParams.set(
-      "search",
-      normalizedSearch,
-    );
-  }
-
-  appendArrayParam(
-    searchParams,
-    "categoria",
-    params.categorias,
-  );
-
-  appendArrayParam(
-    searchParams,
-    "coleccion",
-    params.colecciones,
-  );
-
-  appendArrayParam(
-    searchParams,
-    "etiqueta",
-    params.etiquetas,
-  );
-
-  appendArrayParam(
-    searchParams,
-    "material",
-    params.materiales,
-  );
-
-  appendArrayParam(
-    searchParams,
-    "color",
-    params.colores,
-  );
-
-  if (params.destacado) {
-    searchParams.set(
-      "destacado",
-      "true",
-    );
-  }
-
-  if (params.enOferta) {
-    searchParams.set(
-      "en_oferta",
-      "true",
-    );
-  }
-
-  if (params.precioMinimo) {
-    searchParams.set(
-      "precio_minimo",
-      params.precioMinimo,
-    );
-  }
-
-  if (params.precioMaximo) {
-    searchParams.set(
-      "precio_maximo",
-      params.precioMaximo,
-    );
-  }
-
-  if (params.orden) {
-    searchParams.set(
-      "orden",
-      params.orden,
-    );
-  }
-
-  return searchParams;
-}
-
-export async function obtenerProductosCatalogo(
+export function obtenerProductosCatalogo(
   params: CatalogoQueryParams,
   signal?: AbortSignal,
-): Promise<CatalogoResponse> {
+) {
   const searchParams =
     buildCatalogoSearchParams(
       params,
     );
 
-  const response = await fetch(
-    `${API_URL}/catalogo/productos/?${searchParams.toString()}`,
+  return httpClient<CatalogoResponse>(
+    `/catalogo/productos/?${searchParams.toString()}`,
     {
       method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
       signal,
+
+      errorMessage:
+        "No fue posible cargar el catálogo.",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(
-      "No fue posible obtener los productos.",
-    );
-  }
-
-  const data: CatalogoResponse =
-    await response.json();
-
-  return data;
 }
 
-export async function obtenerOpcionesCatalogo(
+
+export function obtenerOpcionesCatalogo(
   signal?: AbortSignal,
-): Promise<CatalogoOpcionesResponse> {
-  const response = await fetch(
-    `${API_URL}/catalogo/opciones/`,
+) {
+  return httpClient<CatalogoOpcionesResponse>(
+    "/catalogo/opciones/",
     {
       method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
       signal,
+
+      errorMessage:
+        "No fue posible cargar las opciones del catálogo.",
     },
   );
-
-  if (!response.ok) {
-    throw new Error(
-      "No fue posible obtener los filtros.",
-    );
-  }
-
-  const data: CatalogoOpcionesResponse =
-    await response.json();
-
-  return data;
 }
+
+
 export async function obtenerProductoDetalle(
   slug: string,
   signal?: AbortSignal,
-): Promise<ProductoDetalle> {
-  const response = await fetch(
-    `${API_URL}/catalogo/productos/${encodeURIComponent(slug)}/`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
+) {
+  try {
+    return await httpClient<ProductoDetalle>(
+      buildProductoEndpoint(
+        slug,
+      ),
+      {
+        method: "GET",
+        signal,
+
+        errorMessage:
+          "No fue posible cargar el producto.",
       },
-      signal,
-    },
-  );
-
-  if (response.status === 404) {
-    throw new Error(
-      "El producto no existe o ya no está disponible.",
     );
+  } catch (error) {
+    if (
+      error instanceof HttpError
+      && error.status === 404
+    ) {
+      throw new HttpError(
+        "El producto solicitado no existe o ya no está disponible.",
+        error.status,
+        error.data,
+      );
+    }
+
+    throw error;
   }
-
-  if (!response.ok) {
-    throw new Error(
-      "No fue posible obtener el detalle del producto.",
-    );
-  }
-
-  const data: ProductoDetalle =
-    await response.json();
-
-  return data;
 }
+
+
 export async function obtenerProductosRelacionados(
   slug: string,
   signal?: AbortSignal,
-): Promise<ProductoCatalogo[]> {
-  const response = await fetch(
-    `${API_URL}/catalogo/productos/${encodeURIComponent(slug)}/relacionados/`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
+) {
+  try {
+    return await httpClient<
+      ProductoCatalogo[]
+    >(
+      `${
+        buildProductoEndpoint(
+          slug,
+        )
+      }relacionados/`,
+      {
+        method: "GET",
+        signal,
+
+        errorMessage:
+          "No fue posible cargar los productos relacionados.",
       },
-      signal,
-    },
-  );
-
-  if (response.status === 404) {
-    throw new Error(
-      "El producto no existe o ya no está disponible.",
     );
+  } catch (error) {
+    if (
+      error instanceof HttpError
+      && error.status === 404
+    ) {
+      throw new HttpError(
+        "No fue posible encontrar el producto para consultar sus relacionados.",
+        error.status,
+        error.data,
+      );
+    }
+
+    throw error;
   }
-
-  if (!response.ok) {
-    throw new Error(
-      "No fue posible obtener los productos relacionados.",
-    );
-  }
-
-  const data: ProductoCatalogo[] =
-    await response.json();
-
-  return data;
 }
