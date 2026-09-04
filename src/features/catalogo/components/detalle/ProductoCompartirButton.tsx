@@ -1,4 +1,5 @@
 // src/features/catalogo/components/detalle/ProductoCompartirButton.tsx
+
 import {
   useState,
 } from "react";
@@ -11,11 +12,14 @@ import type {
   ProductoDetalle,
 } from "../../types/catalogo.types";
 
-import ProductoCompartirModal from "./ProductoCompartirModal";
+import ProductoCompartirModal
+  from "./ProductoCompartirModal";
+
 
 type ProductoCompartirButtonProps = {
   producto: ProductoDetalle;
 };
+
 
 export default function ProductoCompartirButton({
   producto,
@@ -25,18 +29,49 @@ export default function ProductoCompartirButton({
     setModalOpen,
   ] = useState(false);
 
+
+  function openModal() {
+    setModalOpen(true);
+  }
+
+
+  function closeModal() {
+    setModalOpen(false);
+  }
+
+
   return (
     <>
       <button
         type="button"
-        onClick={() => {
-          setModalOpen(true);
-        }}
+        onClick={openModal}
         aria-label={
           `Compartir ${producto.nombre}`
         }
         title="Compartir"
-        className="flex size-11 shrink-0 items-center justify-center rounded-full border border-brand-100 bg-white text-brand-600 shadow-sm transition hover:border-brand-300 hover:bg-brand-50 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-brand-900/50 dark:bg-warm-800 dark:text-brand-200 dark:hover:bg-brand-950/30"
+        className={[
+          "flex size-11 shrink-0",
+          "items-center justify-center",
+          "rounded-full border",
+          "border-brand-100",
+          "bg-white",
+          "text-brand-600",
+          "shadow-sm",
+          "transition",
+
+          "hover:border-brand-300",
+          "hover:bg-brand-50",
+          "active:scale-90",
+
+          "focus-visible:outline-2",
+          "focus-visible:outline-offset-2",
+          "focus-visible:outline-brand-500",
+
+          "dark:border-brand-900/50",
+          "dark:bg-warm-800",
+          "dark:text-brand-200",
+          "dark:hover:bg-brand-950/30",
+        ].join(" ")}
       >
         <Share2
           aria-hidden="true"
@@ -47,9 +82,7 @@ export default function ProductoCompartirButton({
       <ProductoCompartirModal
         open={modalOpen}
         producto={producto}
-        onClose={() => {
-          setModalOpen(false);
-        }}
+        onClose={closeModal}
       />
     </>
   );

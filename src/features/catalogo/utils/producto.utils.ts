@@ -1,7 +1,7 @@
 // src/features/catalogo/utils/producto.utils.ts
 
 import type {
-  ProductoCatalogo,
+  ProductoOferta,
 } from "../types/catalogo.types";
 
 
@@ -11,6 +11,12 @@ const IMAGE_RATIOS = [
   "aspect-square",
   "aspect-[5/6]",
 ] as const;
+
+
+type ProductoConPrecio = {
+  precio_referencia: string | null;
+  oferta: ProductoOferta;
+};
 
 
 function parseNumericValue(
@@ -53,7 +59,7 @@ export function getProductoImageRatio(
 
 
 export function getProductoPriceInfo(
-  producto: ProductoCatalogo,
+  producto: ProductoConPrecio,
 ) {
   const precioReferencia =
     parseNumericValue(
@@ -62,20 +68,17 @@ export function getProductoPriceInfo(
 
   const precioOriginal =
     parseNumericValue(
-      producto.oferta
-        .precio_original,
+      producto.oferta.precio_original,
     );
 
   const precioOferta =
     parseNumericValue(
-      producto.oferta
-        .precio_oferta,
+      producto.oferta.precio_oferta,
     );
 
   const precioActual =
     parseNumericValue(
-      producto.oferta
-        .precio_actual,
+      producto.oferta.precio_actual,
     );
 
   const porcentajeDescuento =
@@ -109,28 +112,19 @@ export function getProductoPriceInfo(
 
   return {
     tieneOferta,
-
     precioReferencia,
-
     precioOriginal,
-
     precioOferta,
-
     precioActual,
-
     precioFinal,
-
     precioAnterior,
-
     porcentajeDescuento,
 
     fechaInicioOferta:
-      producto.oferta
-        .inicia_en,
+      producto.oferta.inicia_en,
 
     fechaFinOferta:
-      producto.oferta
-        .finaliza_en,
+      producto.oferta.finaliza_en,
 
     textoOferta:
       producto.oferta.texto,

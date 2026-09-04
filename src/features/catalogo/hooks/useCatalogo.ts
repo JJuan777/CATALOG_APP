@@ -1,6 +1,7 @@
 // src/features/catalogo/hooks/useCatalogo.ts
 
 import {
+  useCallback,
   useEffect,
   useState,
 } from "react";
@@ -26,20 +27,51 @@ function isAbortError(
 }
 
 
+function mergeProducts(
+  currentProducts: ProductoCatalogo[],
+  newProducts: ProductoCatalogo[],
+) {
+  const productsMap =
+    new Map<number, ProductoCatalogo>(
+      currentProducts.map(
+        (product) => [
+          product.id,
+          product,
+        ],
+      ),
+    );
+
+  newProducts.forEach(
+    (product) => {
+      productsMap.set(
+        product.id,
+        product,
+      );
+    },
+  );
+
+  return Array.from(
+    productsMap.values(),
+  );
+}
+
+
 export default function useCatalogo(
   params: CatalogoQueryParams,
 ) {
   const [
     productos,
     setProductos,
-  ] = useState<ProductoCatalogo[]>([]);
+  ] = useState<ProductoCatalogo[]>(
+    [],
+  );
 
   const [
     paginacion,
     setPaginacion,
-  ] = useState<CatalogoPaginacion | null>(
-    null,
-  );
+  ] = useState<
+    CatalogoPaginacion | null
+  >(null);
 
   const [
     loading,
@@ -49,7 +81,9 @@ export default function useCatalogo(
   const [
     error,
     setError,
-  ] = useState<string | null>(null);
+  ] = useState<
+    string | null
+  >(null);
 
   const [
     reloadKey,
@@ -61,12 +95,16 @@ export default function useCatalogo(
     const controller =
       new AbortController();
 
+    const isFirstPage =
+      params.page === 1;
+
+
     async function loadProducts() {
       try {
         setLoading(true);
         setError(null);
 
-        if (params.page === 1) {
+        if (isFirstPage) {
           setProductos([]);
           setPaginacion(null);
         }
@@ -77,33 +115,21 @@ export default function useCatalogo(
             controller.signal,
           );
 
+        if (
+          controller.signal.aborted
+        ) {
+          return;
+        }
+
         setProductos(
           (currentProducts) => {
-            if (params.page === 1) {
+            if (isFirstPage) {
               return response.resultados;
             }
 
-            const productsMap =
-              new Map(
-                currentProducts.map(
-                  (product) => [
-                    product.id,
-                    product,
-                  ],
-                ),
-              );
-
-            response.resultados.forEach(
-              (product) => {
-                productsMap.set(
-                  product.id,
-                  product,
-                );
-              },
-            );
-
-            return Array.from(
-              productsMap.values(),
+            return mergeProducts(
+              currentProducts,
+              response.resultados,
             );
           },
         );
@@ -116,6 +142,7 @@ export default function useCatalogo(
           isAbortError(
             requestError,
           )
+          || controller.signal.aborted
         ) {
           return;
         }
@@ -134,7 +161,9 @@ export default function useCatalogo(
       }
     }
 
+
     void loadProducts();
+
 
     return () => {
       controller.abort();
@@ -145,12 +174,13 @@ export default function useCatalogo(
   ]);
 
 
-  function reload() {
-    setReloadKey(
-      (currentKey) =>
-        currentKey + 1,
-    );
-  }
+  const reload =
+    useCallback(() => {
+      setReloadKey(
+        (currentKey) =>
+          currentKey + 1,
+      );
+    }, []);
 
 
   return {

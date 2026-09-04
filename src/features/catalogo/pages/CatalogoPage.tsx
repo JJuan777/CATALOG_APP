@@ -1,4 +1,5 @@
 // src/features/catalogo/pages/CatalogoPage.tsx
+
 import {
   useDeferredValue,
   useMemo,
@@ -9,24 +10,42 @@ import {
   LoaderCircle,
 } from "lucide-react";
 
+import CatalogoEmpty
+  from "../components/CatalogoEmpty";
+
+import CatalogoError
+  from "../components/CatalogoError";
+
+import CatalogoFiltersPanel
+  from "../components/filters/CatalogoFiltersPanel";
+
+import CatalogoGrid
+  from "../components/CatalogoGrid";
+
+import CatalogoSkeleton
+  from "../components/CatalogoSkeleton";
+
+import CatalogoToolbar
+  from "../components/CatalogoToolbar";
+
 import {
   INITIAL_CATALOGO_FILTERS,
 } from "../constants/catalogo.constants";
 
-import CatalogoEmpty from "../components/CatalogoEmpty";
-import CatalogoError from "../components/CatalogoError";
-import CatalogoFiltersPanel
-  from "../components/filters/CatalogoFiltersPanel";
-import CatalogoGrid from "../components/CatalogoGrid";
-import CatalogoSkeleton from "../components/CatalogoSkeleton";
-import CatalogoToolbar from "../components/CatalogoToolbar";
+import useCatalogo
+  from "../hooks/useCatalogo";
 
-import useCatalogo from "../hooks/useCatalogo";
-import useCatalogoOptions from "../hooks/useCatalogoOptions";
+import useCatalogoOptions
+  from "../hooks/useCatalogoOptions";
 
 import type {
   CatalogoFiltersState,
 } from "../types/catalogo.types";
+
+import {
+  countActiveCatalogoFilters,
+} from "../utils/catalogo.utils";
+
 
 export default function CatalogoPage() {
   const [
@@ -53,22 +72,27 @@ export default function CatalogoPage() {
     setFiltersOpen,
   ] = useState(false);
 
-  const deferredSearch = useDeferredValue(
-    filters.search,
-  );
 
-  const queryParams = useMemo(
-    () => ({
-      ...filters,
-      search: deferredSearch,
-      page,
-    }),
-    [
-      filters,
-      deferredSearch,
-      page,
-    ],
-  );
+  const deferredSearch =
+    useDeferredValue(
+      filters.search,
+    );
+
+
+  const queryParams =
+    useMemo(
+      () => ({
+        ...filters,
+        search: deferredSearch,
+        page,
+      }),
+      [
+        filters,
+        deferredSearch,
+        page,
+      ],
+    );
+
 
   const {
     productos,
@@ -76,38 +100,74 @@ export default function CatalogoPage() {
     loading,
     error,
     reload,
-  } = useCatalogo(queryParams);
+  } = useCatalogo(
+    queryParams,
+  );
+
 
   const {
     options,
     loading: optionsLoading,
   } = useCatalogoOptions();
 
-  const activeFilters = useMemo(
-    () => (
-      filters.categorias.length
-      + filters.colecciones.length
-      + filters.etiquetas.length
-      + filters.materiales.length
-      + filters.colores.length
-      + Number(filters.destacado)
-      + Number(filters.enOferta)
-      + Number(Boolean(filters.precioMinimo))
-      + Number(Boolean(filters.precioMaximo))
-    ),
-    [filters],
-  );
+
+  const activeFilters =
+    useMemo(
+      () =>
+        countActiveCatalogoFilters(
+          filters,
+        ),
+      [filters],
+    );
+
+
+  const initialLoading =
+    loading
+    && page === 1
+    && productos.length === 0;
+
+
+  const hasProducts =
+    productos.length > 0;
+
+
+  const hasNextPage =
+    Boolean(
+      paginacion?.siguiente,
+    );
+
 
   function updateImmediateFilters(
     changes: Partial<CatalogoFiltersState>,
   ) {
-    setFilters((currentFilters) => ({
-      ...currentFilters,
-      ...changes,
-    }));
+    setFilters(
+      (currentFilters) => ({
+        ...currentFilters,
+        ...changes,
+      }),
+    );
 
     setPage(1);
   }
+
+
+  function handleSearchChange(
+    search: string,
+  ) {
+    updateImmediateFilters({
+      search,
+    });
+  }
+
+
+  function handleOrderChange(
+    orden: string,
+  ) {
+    updateImmediateFilters({
+      orden,
+    });
+  }
+
 
   function openFilters() {
     setDraftFilters(
@@ -117,6 +177,7 @@ export default function CatalogoPage() {
     setFiltersOpen(true);
   }
 
+
   function closeFilters() {
     setDraftFilters(
       filters,
@@ -124,6 +185,7 @@ export default function CatalogoPage() {
 
     setFiltersOpen(false);
   }
+
 
   function applyFilters() {
     setFilters(
@@ -134,53 +196,91 @@ export default function CatalogoPage() {
     setFiltersOpen(false);
   }
 
+
   function clearDraftFilters() {
     setDraftFilters({
       ...INITIAL_CATALOGO_FILTERS,
-      search: filters.search,
-      orden: filters.orden,
+
+      search:
+        filters.search,
+
+      orden:
+        filters.orden,
     });
   }
 
-  const initialLoading =
-    loading
-    && page === 1
-    && productos.length === 0;
+
+  function loadNextPage() {
+    if (
+      loading
+      || !hasNextPage
+    ) {
+      return;
+    }
+
+    setPage(
+      (currentPage) =>
+        currentPage + 1,
+    );
+  }
+
 
   return (
-    <section className="w-full px-4 pb-7 sm:px-6 lg:px-8">
+    <section
+      className={[
+        "w-full",
+        "px-4 pb-7",
+
+        "sm:px-6",
+        "lg:px-8",
+      ].join(" ")}
+    >
       <CatalogoToolbar
         search={filters.search}
         order={filters.orden}
         totalProducts={
-          paginacion?.total_registros ?? 0
+          paginacion
+            ?.total_registros
+          ?? 0
         }
-        activeFilters={activeFilters}
+        activeFilters={
+          activeFilters
+        }
         orderOptions={
-          options?.ordenamientos ?? []
+          options
+            ?.ordenamientos
+          ?? []
         }
-        onSearchChange={(search) => {
-          updateImmediateFilters({
-            search,
-          });
-        }}
-        onOrderChange={(orden) => {
-          updateImmediateFilters({
-            orden,
-          });
-        }}
-        onToggleFilters={openFilters}
+        onSearchChange={
+          handleSearchChange
+        }
+        onOrderChange={
+          handleOrderChange
+        }
+        onToggleFilters={
+          openFilters
+        }
       />
 
       <CatalogoFiltersPanel
         open={filtersOpen}
         filters={draftFilters}
         options={options}
-        loading={optionsLoading}
-        onChange={setDraftFilters}
-        onApply={applyFilters}
-        onClear={clearDraftFilters}
-        onClose={closeFilters}
+        loading={
+          optionsLoading
+        }
+        onChange={
+          setDraftFilters
+        }
+        onApply={
+          applyFilters
+        }
+        onClear={
+          clearDraftFilters
+        }
+        onClose={
+          closeFilters
+        }
       />
 
       {initialLoading && (
@@ -189,7 +289,7 @@ export default function CatalogoPage() {
 
       {!initialLoading
         && error
-        && productos.length === 0 && (
+        && !hasProducts && (
           <CatalogoError
             message={error}
             onRetry={reload}
@@ -198,31 +298,73 @@ export default function CatalogoPage() {
 
       {!initialLoading
         && !error
-        && productos.length === 0 && (
+        && !hasProducts && (
           <CatalogoEmpty />
         )}
 
-      {productos.length > 0 && (
+      {hasProducts && (
         <CatalogoGrid
           productos={productos}
         />
       )}
 
-      {productos.length > 0
-        && paginacion?.siguiente && (
-          <div className="flex justify-center py-8">
+      {hasProducts
+        && hasNextPage && (
+          <div
+            className={[
+              "flex",
+              "justify-center",
+              "py-8",
+            ].join(" ")}
+          >
             <button
               type="button"
               disabled={loading}
-              onClick={() => {
-                setPage((currentPage) => (
-                  currentPage + 1
-                ));
-              }}
-              className="inline-flex min-w-40 items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-white px-5 py-3 text-sm font-extrabold text-brand-700 shadow-soft transition active:scale-95 disabled:opacity-60 dark:border-brand-900/60 dark:bg-warm-800 dark:text-brand-200"
+              onClick={
+                loadNextPage
+              }
+              className={[
+                "inline-flex",
+                "min-w-40",
+                "items-center",
+                "justify-center",
+                "gap-2",
+                "rounded-2xl",
+                "border",
+                "border-brand-200",
+                "bg-white",
+                "px-5 py-3",
+                "text-sm",
+                "font-extrabold",
+                "text-brand-700",
+                "shadow-soft",
+                "transition",
+
+                "hover:border-brand-300",
+                "hover:bg-brand-50",
+                "active:scale-95",
+
+                "disabled:cursor-not-allowed",
+                "disabled:opacity-60",
+
+                "focus-visible:outline-2",
+                "focus-visible:outline-offset-2",
+                "focus-visible:outline-brand-500",
+
+                "dark:border-brand-900/60",
+                "dark:bg-warm-800",
+                "dark:text-brand-200",
+                "dark:hover:bg-brand-950/30",
+              ].join(" ")}
             >
               {loading && (
-                <LoaderCircle className="size-4 animate-spin" />
+                <LoaderCircle
+                  aria-hidden="true"
+                  className={[
+                    "size-4",
+                    "animate-spin",
+                  ].join(" ")}
+                />
               )}
 
               {loading

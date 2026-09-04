@@ -1,4 +1,5 @@
 // src/features/catalogo/hooks/useProductoCompartir.ts
+
 import {
   useEffect,
   useMemo,
@@ -13,6 +14,11 @@ import {
 import type {
   ProductoDetalle,
 } from "../types/catalogo.types";
+
+
+const COPY_FEEDBACK_DURATION =
+  2500;
+
 
 async function copyWithFallback(
   value: string,
@@ -34,9 +40,12 @@ async function copyWithFallback(
     );
 
   textarea.value = value;
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  textarea.style.pointerEvents = "none";
+  textarea.style.position =
+    "fixed";
+  textarea.style.opacity =
+    "0";
+  textarea.style.pointerEvents =
+    "none";
 
   document.body.appendChild(
     textarea,
@@ -56,20 +65,29 @@ async function copyWithFallback(
 
   if (!copied) {
     throw new Error(
-      "No fue posible copiar el enlace.",
+      "No fue posible copiar el contenido.",
     );
   }
 }
 
+
 function openExternalUrl(
   url: string,
 ) {
-  window.open(
-    url,
-    "_blank",
-    "noopener,noreferrer",
-  );
+  const newWindow =
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer",
+    );
+
+  if (!newWindow) {
+    throw new Error(
+      "No fue posible abrir la ventana para compartir.",
+    );
+  }
 }
+
 
 export default function useProductoCompartir(
   producto: ProductoDetalle,
@@ -82,32 +100,69 @@ export default function useProductoCompartir(
   const [
     error,
     setError,
-  ] = useState<string | null>(null);
+  ] = useState<
+    string | null
+  >(null);
 
   const resetTimerRef =
-    useRef<number | null>(null);
+    useRef<number | null>(
+      null,
+    );
 
-  const shareData = useMemo(
-    () => (
-      buildProductoCompartirData(
-        producto,
-      )
-    ),
-    [producto],
-  );
+
+  const shareData =
+    useMemo(
+      () =>
+        buildProductoCompartirData(
+          producto,
+        ),
+      [producto],
+    );
+
 
   const canUseNativeShare =
-    typeof navigator.share === "function";
+    typeof navigator.share
+      === "function";
 
-  useEffect(() => (
-    () => {
-      if (resetTimerRef.current) {
+
+  useEffect(() => {
+    setCopied(false);
+    setError(null);
+  }, [
+    producto.id,
+  ]);
+
+
+  useEffect(() => {
+    return () => {
+      if (
+        resetTimerRef.current
+        !== null
+      ) {
         window.clearTimeout(
           resetTimerRef.current,
         );
       }
+    };
+  }, []);
+
+
+  function clearCopyTimer() {
+    if (
+      resetTimerRef.current
+      === null
+    ) {
+      return;
     }
-  ), []);
+
+    window.clearTimeout(
+      resetTimerRef.current,
+    );
+
+    resetTimerRef.current =
+      null;
+  }
+
 
   async function copyMessageAndLink() {
     try {
@@ -117,20 +172,19 @@ export default function useProductoCompartir(
         shareData.mensajeCompleto,
       );
 
-      setCopied(true);
+      clearCopyTimer();
 
-      if (resetTimerRef.current) {
-        window.clearTimeout(
-          resetTimerRef.current,
-        );
-      }
+      setCopied(true);
 
       resetTimerRef.current =
         window.setTimeout(
           () => {
             setCopied(false);
+
+            resetTimerRef.current =
+              null;
           },
-          2500,
+          COPY_FEEDBACK_DURATION,
         );
     } catch {
       setCopied(false);
@@ -141,6 +195,7 @@ export default function useProductoCompartir(
     }
   }
 
+
   async function nativeShare() {
     if (!canUseNativeShare) {
       return;
@@ -150,14 +205,21 @@ export default function useProductoCompartir(
       setError(null);
 
       await navigator.share({
-        title: shareData.titulo,
-        text: shareData.mensaje,
-        url: shareData.enlace,
+        title:
+          shareData.titulo,
+
+        text:
+          shareData.mensaje,
+
+        url:
+          shareData.enlace,
       });
     } catch (shareError) {
       if (
-        shareError instanceof DOMException
-        && shareError.name === "AbortError"
+        shareError
+          instanceof DOMException
+        && shareError.name
+          === "AbortError"
       ) {
         return;
       }
@@ -168,29 +230,58 @@ export default function useProductoCompartir(
     }
   }
 
+
   function shareOnWhatsApp() {
-    openExternalUrl(
-      shareData.whatsappUrl,
-    );
+    try {
+      setError(null);
+
+      openExternalUrl(
+        shareData.whatsappUrl,
+      );
+    } catch {
+      setError(
+        "No fue posible abrir WhatsApp.",
+      );
+    }
   }
+
 
   function shareOnFacebook() {
-    openExternalUrl(
-      shareData.facebookUrl,
-    );
+    try {
+      setError(null);
+
+      openExternalUrl(
+        shareData.facebookUrl,
+      );
+    } catch {
+      setError(
+        "No fue posible abrir Facebook.",
+      );
+    }
   }
 
+
   function shareOnX() {
-    openExternalUrl(
-      shareData.xUrl,
-    );
+    try {
+      setError(null);
+
+      openExternalUrl(
+        shareData.xUrl,
+      );
+    } catch {
+      setError(
+        "No fue posible abrir X.",
+      );
+    }
   }
+
 
   return {
     shareData,
     copied,
     error,
     canUseNativeShare,
+
     copyMessageAndLink,
     nativeShare,
     shareOnWhatsApp,

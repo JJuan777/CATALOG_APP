@@ -1,25 +1,32 @@
 // src/hooks/useTheme.ts
+
 import {
+  useCallback,
   useEffect,
   useState,
 } from "react";
 
-type Theme = "light" | "dark";
 
-const THEME_STORAGE_KEY = "app-theme";
+export type Theme =
+  | "light"
+  | "dark";
 
-function getInitialTheme(): Theme {
-  const savedTheme = localStorage.getItem(
-    THEME_STORAGE_KEY,
+
+const THEME_STORAGE_KEY =
+  "app-theme";
+
+
+function isTheme(
+  value: string | null,
+): value is Theme {
+  return (
+    value === "light"
+    || value === "dark"
   );
+}
 
-  if (
-    savedTheme === "light"
-    || savedTheme === "dark"
-  ) {
-    return savedTheme;
-  }
 
+function getSystemTheme(): Theme {
   return window.matchMedia(
     "(prefers-color-scheme: dark)",
   ).matches
@@ -27,38 +34,73 @@ function getInitialTheme(): Theme {
     : "light";
 }
 
+
+function getInitialTheme(): Theme {
+  const savedTheme =
+    localStorage.getItem(
+      THEME_STORAGE_KEY,
+    );
+
+  if (
+    isTheme(
+      savedTheme,
+    )
+  ) {
+    return savedTheme;
+  }
+
+  return getSystemTheme();
+}
+
+
 export default function useTheme() {
   const [
     theme,
     setTheme,
-  ] = useState<Theme>(getInitialTheme);
+  ] = useState<Theme>(
+    getInitialTheme,
+  );
+
 
   useEffect(() => {
-    const rootElement = document.documentElement;
+    const rootElement =
+      document.documentElement;
+
+    const isDark =
+      theme === "dark";
 
     rootElement.classList.toggle(
       "dark",
-      theme === "dark",
+      isDark,
     );
 
-    rootElement.style.colorScheme = theme;
+    rootElement.style.colorScheme =
+      theme;
 
     localStorage.setItem(
       THEME_STORAGE_KEY,
       theme,
     );
-  }, [theme]);
+  }, [
+    theme,
+  ]);
 
-  function toggleTheme() {
-    setTheme((currentTheme) => (
-      currentTheme === "dark"
-        ? "light"
-        : "dark"
-    ));
-  }
+
+  const toggleTheme =
+    useCallback(() => {
+      setTheme(
+        (currentTheme) =>
+          currentTheme === "dark"
+            ? "light"
+            : "dark",
+      );
+    }, []);
+
 
   return {
     theme,
+    isDark:
+      theme === "dark",
     toggleTheme,
   };
 }
