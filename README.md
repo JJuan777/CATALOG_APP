@@ -44,6 +44,14 @@ Entre sus principales funcionalidades se encuentran:
 * Tema claro y oscuro.
 * Diseño responsive.
 
+### Repositorio del backend
+
+La API REST utilizada por esta aplicación se encuentra en un repositorio independiente:
+
+[CATALOG_API](https://github.com/JJuan777/CATALOG_API)
+
+Este repositorio contiene la lógica del backend, endpoints y servicios utilizados por el frontend de CATALOG.
+
 ---
 
 ## Tecnologías principales
