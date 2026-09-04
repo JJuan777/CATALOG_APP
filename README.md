@@ -6,6 +6,14 @@ El proyecto está orientado a ofrecer una experiencia de exploración visual de 
 
 La arquitectura está organizada por funcionalidades para mantener una base de código clara, escalable y fácil de mantener.
 
+<p align="center">
+  <img
+    src="https://raw.githubusercontent.com/JJuan777/CATALOG_APP/main/public/presCATALOG.gif"
+    alt="Vista previa de CATALOG"
+    width="100%"
+  />
+</p>
+
 ---
 
 ## Descripción
